@@ -42,6 +42,10 @@ public class HomeController {
     public String home(ModelMap modelo, HttpSession session){
         modelo.addAttribute("productos", productoService.findAll());
         modelo.addAttribute("sesion", session.getAttribute("idusuario"));
+
+        //obtener el nombre de usuario
+        String username= (String) session.getAttribute("username");
+        modelo.addAttribute("username", username);
         return "usuario/home";
     }
     @GetMapping("productohome/{id}")
@@ -122,7 +126,7 @@ public class HomeController {
         modelo.addAttribute("sesion", session.getAttribute("idusuario"));
         return "/usuario/carrito";
     }
-
+    //mostrar la orden
     @GetMapping("/order")
     public String order(ModelMap modelo, HttpSession session){
                                                 //pasamos a integer el objeto, que previamente tuvo que pasarse a String
@@ -142,7 +146,7 @@ public class HomeController {
 
         orden.setNumero(ordenService.generarNumeroOrden()); //creamos numero de orden
 
-        Usuario usuario = usuarioService.findById(Integer.parseInt(session.getAttribute("idusuario").toString())).get(); // hardcodeamos elusuario
+        Usuario usuario = usuarioService.findById(Integer.parseInt(session.getAttribute("idusuario").toString())).get(); // obtenemos el usuario
         orden.setUsuario(usuario); //seteamos ese usaurio
 
         ordenService.save(orden); //guardamos
@@ -164,8 +168,14 @@ public class HomeController {
 
     @PostMapping("/busqueda")
     public String busqueda(@RequestParam String nombre, ModelMap modelo){
+
+        String nombreBusqueda = nombre.toLowerCase();
+
+        if(nombre.isEmpty()){
+            return "redirect:/";
+        }
                                                             //flujo->filtra x el nombre que contenga "nombre" -> pasamos el string a una lista
-        List<Producto> productos = productoService.findAll().stream().filter(p -> p.getNombre().contains(nombre)).collect(Collectors.toList());
+        List<Producto> productos = productoService.findAll().stream().filter(p -> p.getNombre().toLowerCase().contains(nombreBusqueda)).collect(Collectors.toList());
 
         modelo.addAttribute("productos", productos);
 

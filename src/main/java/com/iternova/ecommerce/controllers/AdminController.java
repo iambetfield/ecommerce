@@ -5,6 +5,7 @@ import com.iternova.ecommerce.entities.Producto;
 import com.iternova.ecommerce.service.OrdenService;
 import com.iternova.ecommerce.service.ProductoService;
 import com.iternova.ecommerce.service.UsuarioService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -25,10 +26,17 @@ public class AdminController {
     @Autowired
     private OrdenService ordenService;
     @GetMapping("")
-    public String home(ModelMap modelo){
+    public String home(ModelMap modelo, HttpSession session) {
 
         List<Producto> productos = productoService.findAll();
         modelo.addAttribute("productos", productos);
+
+
+        modelo.addAttribute("sesion", session.getAttribute("idusuario"));
+
+        //obtener el nombre de usuario
+        String username= (String) session.getAttribute("username");
+        modelo.addAttribute("username", username);
 
         return "/admin/home"; // no hace falta poner la extensión -- siempre 1° busca en carpeta template
     }

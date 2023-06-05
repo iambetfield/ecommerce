@@ -22,7 +22,10 @@
 <body>
 
   <!-- Navigation -->
+
+  <!--Cuando el usuario no está logueado-->
   <div th:include="usuario/template_usuario.html::header" th:if="${sesion==null}"></div>
+  <!--Cuando el usuario está logueado-->
   <div th:include="usuario/template_usuario.html::header-user" th:unless="${sesion==null}"></div>
 
       <!-- Jumbotron Header -->

@@ -6,6 +6,7 @@ import com.iternova.ecommerce.service.OrdenService;
 import com.iternova.ecommerce.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,14 +26,18 @@ public class UsuarioController {
     @Autowired
     private OrdenService ordenService;
 
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     @GetMapping("/registrar") //usuario/registro
     public String registar(){
         return "usuario/registro";
     }
 
+    //registro de usuarios
     @PostMapping("/registro")
     public String registro(Usuario usuario){
         usuario.setTipo("USER");
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword())); //encripta la clave para el user
         usuarioService.save(usuario);
         return "redirect:/";
     }
@@ -44,25 +49,27 @@ public class UsuarioController {
 
 
     //inicio de SESION
-    @PostMapping("/acceder")
+    @GetMapping("/acceder")
     public String acceder(Usuario usuario, HttpSession session){
-        Optional<Usuario> user = usuarioService.findByEmail(usuario.getEmail());
+        Optional<Usuario> user = usuarioService.findById(Integer.parseInt(session.getAttribute("idusuario").toString()));
         if(user.isPresent()){ //si el usuario está presente..
             session.setAttribute("idusuario", user.get().getId()); //1er parámetro nombre, 2°parámetro valor
+            session.setAttribute("nombreUsuario", user.get().getNombre());
             if(user.get().getTipo().equals("ADMIN")){
-                return "redirect:/admin"; //si está persente Y es ADMIN
+                return "redirect:/admin"; //si está presente Y es ADMIN
             }
         }else {
             return "redirect:usuario/login"; //si no está presente
         }
 
-        return "redirect:/"; //si se logea te manda al home
+        return "redirect:/"; //si se loguea te manda al home
     }
 
 
     @GetMapping("/compras")
     public String compras(HttpSession session, ModelMap modelo){
         modelo.addAttribute("sesion", session.getAttribute("idusuario"));
+
         Usuario usuario = usuarioService.findById(Integer.parseInt(session.getAttribute("idusuario").toString())).get();
         List<Orden> ordenes = ordenService.findByUsuario(usuario);
         modelo.addAttribute("ordenes", ordenes);
